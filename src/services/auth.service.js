@@ -77,7 +77,7 @@ exports.getStudentInfo = async (cookie) => {
  */
 exports.getTeacherInfo = async (cookie, username) => {
   try {
-    const res = await axios.get(`${BASE_URL}/GiangVien/ThongTin/${username}`, {
+    const res = await axios.get(`${BASE_URL}/GiangVien/Home${username}`, {
       headers: { Cookie: cookie },
     });
 
