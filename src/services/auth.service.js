@@ -38,9 +38,7 @@ exports.login = async ({ username, password, role = 0, cookie }) => {
   return res.status === 302;
 };
 
-/**
- * Lấy thông tin sinh viên
- */
+
 exports.getStudentInfo = async (cookie) => {
   try {
     const res = await axios.get(`${BASE_URL}/SinhVien/ThongTinSinhVien`, {
@@ -72,12 +70,10 @@ exports.getStudentInfo = async (cookie) => {
   }
 };
 
-/**
- * Lấy thông tin giảng viên
- */
-exports.getTeacherInfo = async (cookie, username) => {
+
+exports.getTeacherInfo = async (cookie) => {
   try {
-    const res = await axios.get(`${BASE_URL}/GiangVien${username}`, {
+    const res = await axios.get(`${BASE_URL}/GiangVien/Home`, {
       headers: { Cookie: cookie },
     });
 

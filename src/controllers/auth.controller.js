@@ -40,7 +40,7 @@ exports.login = async (req, res) => {
       }
       userData = studentInfo;
     } else if (role === 1) {
-      const teacherInfo = await authService.getTeacherInfo(cookie, username);
+      const teacherInfo = await authService.getTeacherInfo(cookie);
       if (!teacherInfo) {
         return res.status(401).json({ success: false, message: "Thông tin giảng viên không hợp lệ" });
       }
