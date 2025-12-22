@@ -6,7 +6,7 @@ const crawlNews = require("../crawlers/news.crawler");
  * /news:
  *   get:
  *     summary: Lấy danh sách thông báo
- *     description: Crawl danh sách thông báo từ website tinchi.hau.edu.vn
+ *     description: Thông báo/ tin tức
  *     tags:
  *       - News
  *     parameters:
@@ -15,16 +15,16 @@ const crawlNews = require("../crawlers/news.crawler");
  *         schema:
  *           type: integer
  *           example: 1
- *         description: Số trang cần lấy
+ *         description: Số trang 
  *       - in: query
  *         name: IDCat
  *         schema:
  *           type: integer
  *           example: 2
- *         description: ID danh mục (mặc định 2 - Thông báo)
+ *         description: ID danh mục 
  *     responses:
  *       200:
- *         description: Lấy danh sách thông báo thành công
+ *         description: Succes
  *         content:
  *           application/json:
  *             schema:
@@ -36,9 +36,6 @@ const crawlNews = require("../crawlers/news.crawler");
  *                 page:
  *                   type: integer
  *                   example: 1
- *                 total:
- *                   type: integer
- *                   example: 5
  *                 data:
  *                   type: array
  *                   items:
@@ -63,7 +60,6 @@ router.get("/", async (req, res) => {
     res.json({
       success: true,
       page,
-      total: data.length,
       data
     });
   } catch (err) {
@@ -90,7 +86,6 @@ router.get("/", async (req, res) => {
       page,
       IDCat,
       Nhom,
-      total: data.length,
       data
     });
   }catch (err) {
