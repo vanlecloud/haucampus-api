@@ -65,3 +65,14 @@ exports.getStudentInfo = async (cookie) => {
     return null;
   }
 };
+
+exports.getTeacherInfo = async (cookie, username) => {
+  const res = await axios.get(`${BASE_URL}/GiangVien/${username}`, {
+    headers: { Cookie: cookie }
+  });
+
+  const $ = cheerio.load(res.data);
+  const fullName = $("#lblHoTen").text().trim(); 
+  return { username: fullName, faculty };
+};
+

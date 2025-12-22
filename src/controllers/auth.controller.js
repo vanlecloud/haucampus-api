@@ -53,7 +53,6 @@ exports.login = async (req, res) => {
     let userData;
 
     if (role === 0) {
-      // Sinh viên
       const studentInfo = await authService.getStudentInfo(cookie);
       if (!studentInfo) {
         return res.status(401).json({
@@ -61,11 +60,15 @@ exports.login = async (req, res) => {
           message: "Thông tin sinh viên không hợp lệ",
         });
       }
-      userData = studentInfo; // username, classStudy, studentId
+      userData = studentInfo; 
     } else if (role === 1) {
-      // Giảng viên
-      userData = { username }; // chỉ cần username
-    }
+  const teacherInfo = await authService.getTeacherInfo(cookie, username);
+
+  userData = {
+    ...teacherInfo, 
+    userRole: "teacher"
+  };
+}
 
     return res.status(200).json({
       success: true,
