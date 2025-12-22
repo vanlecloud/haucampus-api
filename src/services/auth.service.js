@@ -62,7 +62,7 @@ exports.getStudentInfo = async (cookie) => {
 
     return {
       studentId,
-      username: fullName,  // dùng username = fullName
+      username: fullName,  
       classStudy,
       userRole: "student"
     };
@@ -77,20 +77,18 @@ exports.getStudentInfo = async (cookie) => {
  */
 exports.getTeacherInfo = async (cookie, username) => {
   try {
-    const res = await axios.get(`${BASE_URL}/GiangVien/Home${username}`, {
+    const res = await axios.get(`${BASE_URL}/GiangVien${username}`, {
       headers: { Cookie: cookie },
     });
 
     const $ = cheerio.load(res.data);
 
     const fullName = $("#lblHoTen").text().trim();
-    const faculty = $("#lblKhoa").text().trim();
 
     if (!fullName) return null;
 
     return {
       username: fullName,   
-      faculty,
       userRole: "teacher"
     };
   } catch (error) {
