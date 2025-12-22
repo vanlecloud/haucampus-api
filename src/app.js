@@ -2,9 +2,13 @@ const express = require("express");
 const cors = require("cors");
 const PORT = process.env.PORT || 3000;
 const app = express();
+const swaggerUi = require("swagger-ui-express");
+const swaggerSpec = require("./swagger");
+
 app.use(cors());
 
 app.use("/news", require("./routes/news.route"));
+app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 app.get("/", (req, res) => {
   res.send("HAUCampus API is running");
 });
