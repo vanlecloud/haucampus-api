@@ -5,9 +5,15 @@ const app = express();
 const swaggerUi = require("swagger-ui-express");
 const swaggerSpec = require("./swagger");
 
-app.use(cors());
+const newsRoute = require("./routes/news.route");
+const authRoute = require("./routes/auth.route");
 
-app.use("/news", require("./routes/news.route"));
+app.use(cors());
+app.use(express.json());
+
+app.use("/news", newsRoute);
+app.use("/auth", authRoute);
+
 app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 app.get("/", (req, res) => {
   res.send("HAUCampus API is running");
