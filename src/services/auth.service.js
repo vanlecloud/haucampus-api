@@ -43,20 +43,22 @@ exports.login = async ({ username, password, role = 0, cookie }) => {
  * Lấy thông tin sinh viên
  */
 exports.getStudentInfo = async (cookie) => {
-  try {
-    const res = await axios.get(`${BASE_URL}/SinhVien/ThongTinSinhVien`, {
-      headers: { Cookie: cookie },
-    });
+  const res = await axios.get("https://tinchi.hau.edu.vn/SinhVien/ThongTinSinhVien", {
+    headers: { Cookie: cookie },
+  });
 
-    const $ = cheerio.load(res.data);
-    const studentId = $("#lblMaSV").text().trim();
-    const fullName = $("#lblHoTen").text().trim();
-    const classStudy = $("#lblLop").text().trim();
+  const $ = cheerio.load(res.data);
+  
+  const styMenuDiv = $(".styMenu").first();
+  if (!styMenuDiv || styMenuDiv.length === 0) return null;
 
-    if (!studentId || !fullName) return null;
+  const lines = styMenuDiv.html().split("<br>");
+  const fullName = lines[0].replace(/&[#\w]+;/g, "").trim(); 
+  const classStudy = lines[1]?.trim() || "";
 
-    return { studentId, username: fullName, classStudy };
-  } catch (err) {
-    return null;
-  }
+  return {
+    username: fullName,
+    classStudy,
+    userRole: "student",
+  };
 };
