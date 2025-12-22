@@ -15,7 +15,7 @@ exports.newCookie = async (req, res) => {
 
 exports.login = async (req, res) => {
   const { username, password, role } = req.body;
-  const cookie = req.headers.cookie; // LẤY COOKIE TỪ HEADER
+  const cookie = req.headers.cookie; 
 
   if (!username || !password || (role !== 0 && role !== 1)) {
     return res.status(400).json({ success: false, message: "Thông tin đăng nhập không hợp lệ" });
@@ -26,7 +26,7 @@ exports.login = async (req, res) => {
   }
 
   try {
-    const loginOk = await authService.login({ username, password, role, cookie });
+    const loginOk = await authService.login({ username, password, role });
 
     if (!loginOk) return res.status(401).json({ success: false, message: "Sai thông tin đăng nhập" });
 

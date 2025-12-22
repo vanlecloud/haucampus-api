@@ -15,16 +15,19 @@ exports.getNewCookie = async () => {
   return cookie;
 };
 
-
+/**
+ * Login vào TinChi (không nhận cookie trong body)
+ * Cookie sẽ được gửi qua header ở router
+ */
 exports.login = async ({ username, password, role = 0, cookie }) => {
-  if (!cookie) throw new Error("Missing session cookie");
+  if (!cookie) throw new Error("Missing session cookie"); // cookie phải từ header
 
   const payload = qs.stringify({ Role: role, UserName: username, Password: password });
 
   const res = await axios.post(`${BASE_URL}/DangNhap/CheckLogin`, payload, {
     headers: {
       "Content-Type": "application/x-www-form-urlencoded",
-      Cookie: cookie,  
+      Cookie: cookie,
       Referer: BASE_URL + "/",
     },
     maxRedirects: 0,
@@ -34,8 +37,9 @@ exports.login = async ({ username, password, role = 0, cookie }) => {
   return res.status === 302;
 };
 
-
-
+/**
+ * Lấy thông tin sinh viên
+ */
 exports.getStudentInfo = async (cookie) => {
   try {
     const res = await axios.get(`${BASE_URL}/SinhVien/ThongTinSinhVien`, {
@@ -43,31 +47,25 @@ exports.getStudentInfo = async (cookie) => {
     });
 
     const $ = cheerio.load(res.data);
-
     const studentId = $("#lblMaSinhVien").text().trim();
-
     const infoBlock = $(".navbar-right .styMenu").first();
     const rawHtml = infoBlock.html() || "";
     const parts = rawHtml.split(/<br\s*\/?>/i);
-
-    const fullName = parts[0] ? parts[0].trim() : "";
-    const classStudy = parts[1] ? parts[1].trim() : "";
+    const fullName = parts[0]?.trim() || "";
+    const classStudy = parts[1]?.trim() || "";
 
     if (!studentId || !fullName) return null;
 
-    return {
-      studentId,
-      username: fullName,  
-      classStudy,
-      userRole: "student"
-    };
+    return { studentId, username: fullName, classStudy, userRole: "student" };
   } catch (error) {
     console.error("Lỗi lấy thông tin sinh viên:", error);
     return null;
   }
 };
 
-
+/**
+ * Lấy thông tin giảng viên
+ */
 exports.getTeacherInfo = async (cookie) => {
   try {
     const res = await axios.get(`${BASE_URL}/GiangVien/ThongTinCaNhan`, {
@@ -78,14 +76,11 @@ exports.getTeacherInfo = async (cookie) => {
     const infoBlock = $(".navbar-right .styMenu").first();
     const rawHtml = infoBlock.html() || "";
     const parts = rawHtml.split(/<br\s*\/?>/i);
-    const fullName = parts[0] ? parts[0].trim() : "";
+    const fullName = parts[0]?.trim() || "";
 
     if (!fullName) return null;
 
-    return {
-      username: fullName,   
-      userRole: "teacher"
-    };
+    return { username: fullName, userRole: "teacher" };
   } catch (error) {
     console.error("Lỗi lấy thông tin giảng viên:", error);
     return null;

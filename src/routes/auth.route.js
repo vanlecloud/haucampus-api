@@ -1,13 +1,11 @@
 const express = require("express");
 const router = express.Router();
-const authController = require("../controllers/auth.controller");
 const authService = require("../services/auth.service");
 
 /**
  * @swagger
  * /auth/new-cookie:
  *   post:
- *     summary: Lấy session cookie ASP.NET
  *     tags: [Auth]
  *     responses:
  *       200:
@@ -19,26 +17,22 @@ const authService = require("../services/auth.service");
  *               properties:
  *                 success:
  *                   type: boolean
- *                 cookie:
- *                   type: string
- *                   example: ASP.NET_SessionId=leu5jgswdrdcrdq5sagaq2qg
  */
 router.post("/new-cookie", async (req, res) => {
   try {
     const cookie = await authService.getNewCookie();
-    if (!cookie) return res.status(500).json({ success: false, message: "Không lấy được session cookie" });
+    if (!cookie)
+      return res.status(500).json({ success: false, message: "Không lấy được session cookie" });
     res.json({ success: true, cookie });
   } catch (err) {
     res.status(500).json({ success: false, message: "Lỗi tạo session" });
   }
 });
 
-
 /**
  * @swagger
  * /auth/login:
  *   post:
- *     summary: Đăng nhập hệ thống tín chỉ
  *     tags: [Auth]
  *     requestBody:
  *       required: true
@@ -49,21 +43,14 @@ router.post("/new-cookie", async (req, res) => {
  *             required:
  *               - username
  *               - password
- *               - cookie
  *             properties:
- *               username:
- *                 type: string
- *                 example: 20123456
- *               password:
- *                 type: string
- *                 example: 123456
  *               role:
  *                 type: integer
  *                 default: 0
- *                 description: 0 = Sinh viên, 1 = Giảng viên
- *               cookie:
+ *               username:
  *                 type: string
- *                 description: Cookie ASP.NET_SessionId từ /auth/new-cookie
+ *               password:
+ *                 type: string
  *     responses:
  *       200:
  *         description: Đăng nhập thành công
@@ -80,14 +67,17 @@ router.post("/login", async (req, res) => {
     });
   }
 
+  const cookie = req.headers.cookie;
+  if (!cookie) {
+    return res.status(400).json({ success: false, message: "Thiếu cookie trong header" });
+  }
+
   try {
     const loginOk = await authService.login({ username, password, role, cookie });
 
-    if (!loginOk)
-      return res.status(401).json({
-        success: false,
-        message: "Sai tài khoản hoặc mật khẩu",
-      });
+    if (!loginOk) {
+      return res.status(401).json({ success: false, message: "Sai tài khoản hoặc mật khẩu" });
+    }
 
     let userData;
     if (role === 0) {
@@ -99,7 +89,7 @@ router.post("/login", async (req, res) => {
         });
       userData = studentInfo;
     } else {
-      const teacherInfo = await authService.getTeacherInfo(cookie, username);
+      const teacherInfo = await authService.getTeacherInfo(cookie);
       if (!teacherInfo)
         return res.status(401).json({
           success: false,
@@ -111,7 +101,6 @@ router.post("/login", async (req, res) => {
     res.json({
       success: true,
       data: userData,
-      sessionCookie: cookie, 
     });
   } catch (err) {
     console.error("LOGIN ERROR:", err);
