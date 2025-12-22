@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const { getlichDay } = require("../services/lichday.service");
+const { getlichDay } = require("../services/lichday.services");
 
 /**
  * @swagger
