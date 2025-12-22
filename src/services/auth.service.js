@@ -7,50 +7,42 @@ const BASE_URL = "https://tinchi.hau.edu.vn";
  * Lấy cookie ASP.NET_SessionId
  */
 exports.getNewCookie = async () => {
-  const res = await axios.get(BASE_URL, {
+  const res = await axios.get("https://tinchi.hau.edu.vn/", {
     withCredentials: true,
   });
 
-  const setCookie = res.headers["set-cookie"];
-  if (!setCookie) return null;
+  const cookie = res.headers["set-cookie"]
+    .find(c => c.startsWith("ASP.NET_SessionId"))
+    .split(";")[0];
 
-  const sessionCookie = setCookie.find(c =>
-    c.startsWith("ASP.NET_SessionId")
-  );
-
-  return sessionCookie.split(";")[0];
+  return cookie;
 };
 
 /**
  * Login
  */
-exports.login = async ({ username, password, role, cookie }) => {
-  const loginUrl =
-    role === 1
-      ? `${BASE_URL}/Account/LoginGV`
-      : `${BASE_URL}/Account/LoginSV`;
-
+exports.login = async ({ username, password, role = 0, cookie }) => {
   const payload = qs.stringify({
+    Role: role,
     UserName: username,
     Password: password,
   });
 
-  const res = await axios.post(loginUrl, payload, {
-    headers: {
-      "Content-Type": "application/x-www-form-urlencoded",
-      Cookie: cookie,
-      Referer: BASE_URL,
-    },
-    withCredentials: true,
-    maxRedirects: 0,
-    validateStatus: status => status < 500,
-  });
+  const res = await axios.post(
+    "https://tinchi.hau.edu.vn/DangNhap/CheckLogin",
+    payload,
+    {
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+        Cookie: cookie,
+        Referer: "https://tinchi.hau.edu.vn/",
+      },
+      maxRedirects: 0,
+      validateStatus: s => s < 500,
+    }
+  );
 
-  if (res.status === 302) {
-    return true;
-  }
-
-  return false;
+  return res.status === 302;
 };
 
 exports.getStudentInfo = async (cookie)=>{

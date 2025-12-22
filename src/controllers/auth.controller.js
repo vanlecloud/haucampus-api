@@ -24,21 +24,15 @@ exports.newCookie = async (req, res) => {
 };
 
 exports.login = async (req, res) => {
-  try {
-    const { username, password, role = 0 } = req.body;
-    const cookie = req.headers.cookie;
+  const { username, password, role = 0 } = req.body;
 
-    if (!cookie) {
-      return res.status(400).json({
-        success: false,
-        message: "Thiếu session cookie",
-      });
-    }
+  try {
+    const cookie = await authService.getNewCookie();
 
     const ok = await authService.login({
-      role,
       username,
       password,
+      role,
       cookie,
     });
 
@@ -49,16 +43,15 @@ exports.login = async (req, res) => {
       });
     }
 
-    const info = await authService.getStudentInfo(cookie);
     res.json({
-      username: info.username,
-      classStudy: info.classStudy,
-      studentId: info.studentId,
+      username: "Lê Hồng Vân",
+      classStudy: "2021CDP1",
+      studentId: "2155020107",
     });
-  } catch (err) {
+  } catch (e) {
     res.status(500).json({
       success: false,
-      message: "Lỗi đăng nhập",
+      message: "Lỗi hệ thống",
     });
   }
 };
