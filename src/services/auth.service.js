@@ -73,13 +73,12 @@ exports.getStudentInfo = async (cookie) => {
 
 exports.getTeacherInfo = async (cookie) => {
   try {
-    const res = await axios.get(`${BASE_URL}/GiangVien/Home`, {
+    const res = await axios.get(`${BASE_URL}/GiangVien/ThongTinCaNhan`, {
       headers: { Cookie: cookie },
     });
 
     const $ = cheerio.load(res.data);
-
-    const fullName = $("#lblHoTen").text().trim();
+    const fullName = $(".styMenu").first().text().trim();
 
     if (!fullName) return null;
 
