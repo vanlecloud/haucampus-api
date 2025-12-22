@@ -26,17 +26,13 @@ const authService = require("../services/auth.service");
 router.post("/new-cookie", async (req, res) => {
   try {
     const cookie = await authService.getNewCookie();
-    if (!cookie)
-      return res
-        .status(500)
-        .json({ success: false, message: "Không lấy được session cookie" });
-
+    if (!cookie) return res.status(500).json({ success: false, message: "Không lấy được session cookie" });
     res.json({ success: true, cookie });
   } catch (err) {
-    console.error("NEW COOKIE ERROR:", err);
     res.status(500).json({ success: false, message: "Lỗi tạo session" });
   }
 });
+
 
 /**
  * @swagger
@@ -75,12 +71,12 @@ router.post("/new-cookie", async (req, res) => {
  *         description: Sai thông tin đăng nhập
  */
 router.post("/login", async (req, res) => {
-  const { username, password, role = 0, cookie } = req.body;
+  const { username, password, role = 0 } = req.body;
 
-  if (!username || !password || !cookie || (role !== 0 && role !== 1)) {
+  if (!username || !password || (role !== 0 && role !== 1)) {
     return res.status(400).json({
       success: false,
-      message: "Thông tin đăng nhập hoặc cookie không hợp lệ",
+      message: "Thông tin đăng nhập không hợp lệ",
     });
   }
 
@@ -93,7 +89,6 @@ router.post("/login", async (req, res) => {
         message: "Sai tài khoản hoặc mật khẩu",
       });
 
-    // Lấy thông tin user dựa trên role
     let userData;
     if (role === 0) {
       const studentInfo = await authService.getStudentInfo(cookie);

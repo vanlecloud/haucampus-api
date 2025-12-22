@@ -15,20 +15,16 @@ exports.getNewCookie = async () => {
   return cookie;
 };
 
-/**
- * Login vào TinChi
- */
+
 exports.login = async ({ username, password, role = 0, cookie }) => {
-  const payload = qs.stringify({
-    Role: role,
-    UserName: username,
-    Password: password,
-  });
+  if (!cookie) throw new Error("Missing session cookie");
+
+  const payload = qs.stringify({ Role: role, UserName: username, Password: password });
 
   const res = await axios.post(`${BASE_URL}/DangNhap/CheckLogin`, payload, {
     headers: {
       "Content-Type": "application/x-www-form-urlencoded",
-      Cookie: cookie,
+      Cookie: cookie,  
       Referer: BASE_URL + "/",
     },
     maxRedirects: 0,
@@ -37,6 +33,7 @@ exports.login = async ({ username, password, role = 0, cookie }) => {
 
   return res.status === 302;
 };
+
 
 
 exports.getStudentInfo = async (cookie) => {

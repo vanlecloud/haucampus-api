@@ -14,42 +14,32 @@ exports.newCookie = async (req, res) => {
 };
 
 exports.login = async (req, res) => {
-  const { username, password, role = 0, cookie } = req.body;
+  const { username, password, role } = req.body;
+  const cookie = req.headers.cookie; // LẤY COOKIE TỪ HEADER
 
-  if (!username || !password || !cookie || (role !== 0 && role !== 1)) {
-    return res.status(400).json({
-      success: false,
-      message: "Thông tin đăng nhập hoặc cookie không hợp lệ",
-    });
+  if (!username || !password || (role !== 0 && role !== 1)) {
+    return res.status(400).json({ success: false, message: "Thông tin đăng nhập không hợp lệ" });
+  }
+
+  if (!cookie) {
+    return res.status(400).json({ success: false, message: "Thiếu session cookie trong header" });
   }
 
   try {
     const loginOk = await authService.login({ username, password, role, cookie });
 
-    if (!loginOk) {
-      return res.status(401).json({ success: false, message: "Sai tài khoản hoặc mật khẩu" });
-    }
+    if (!loginOk) return res.status(401).json({ success: false, message: "Sai thông tin đăng nhập" });
 
-    let userData;
+    let userData = role === 0
+      ? await authService.getStudentInfo(cookie)
+      : await authService.getTeacherInfo(cookie);
 
-    if (role === 0) {
-      const studentInfo = await authService.getStudentInfo(cookie);
-      if (!studentInfo) {
-        return res.status(401).json({ success: false, message: "Thông tin sinh viên không hợp lệ" });
-      }
-      userData = studentInfo;
-    } else {
-      const teacherInfo = await authService.getTeacherInfo(cookie);
-      if (!teacherInfo) {
-        return res.status(401).json({ success: false, message: "Thông tin giảng viên không hợp lệ" });
-      }
-      userData = { ...teacherInfo, userRole: "teacher" };
-    }
+    if (!userData) return res.status(401).json({ success: false, message: "Không lấy được thông tin người dùng" });
 
-    return res.status(200).json({ success: true, data: userData, sessionCookie: cookie });
-
-  } catch (e) {
-    console.error("LOGIN ERROR:", e);
-    return res.status(500).json({ success: false, message: "Lỗi hệ thống" });
+    res.status(200).json({ success: true, data: userData });
+  } catch (err) {
+    console.error("Login error:", err);
+    res.status(500).json({ success: false, message: "Lỗi hệ thống" });
   }
 };
+
