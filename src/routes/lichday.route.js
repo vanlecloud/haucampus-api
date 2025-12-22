@@ -1,6 +1,5 @@
 const express = require("express");
 const router = express.Router();
-const { getlichDay } = require("../services/lichday.services");
 const lichDayController = require("../controllers/lichday.controller");
 
 /**
@@ -59,5 +58,5 @@ const lichDayController = require("../controllers/lichday.controller");
  *         description: Lỗi hệ thống
  */
 
-router.get("/", lichDayController.getSchedule);
+router.get("/lich-day", lichDayController.getSchedule);
 module.exports = router;

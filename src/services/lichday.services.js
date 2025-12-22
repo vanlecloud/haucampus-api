@@ -1,21 +1,11 @@
 const axios = require("axios");
 const cheerio = require("cheerio");
 
-
-/**
- * @param {string} namHoc 
- * @param {string} hocKy 
- * @param {string} cookie 
- */
-
 async function getlichDay({ namHoc, hocKy, cookie }) {
   const url = `https://tinchi.hau.edu.vn/GiangVien/LichGiangDay?namHoc=${namHoc}&hocKy=${hocKy}`;
-
-  const res = await axios.get(url, {
-    headers: { "User-Agent": "Mozilla/5.0", Cookie: cookie, Accept: "text/html" },
-  });
-
+  const res = await axios.get(url, { headers: { Cookie: cookie, "User-Agent": "Mozilla/5.0" } });
   const $ = cheerio.load(res.data);
+
   const tableRows = $("#gvListContact tbody tr");
   const schedule = [];
   let currentClass = {};
@@ -34,7 +24,6 @@ async function getlichDay({ namHoc, hocKy, cookie }) {
     const ngayHoc = $(tds[7]).text().trim();
 
     schedule.push({ maHocPhan, tenHocPhan, soTinChi, tenLopTinChi, phong, tiet, thu, ngayHoc });
-
     currentClass = { maHocPhan, tenHocPhan, soTinChi, tenLopTinChi };
   });
 

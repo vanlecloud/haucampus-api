@@ -15,7 +15,7 @@ app.use(express.json());
 
 app.use("/news", newsRoute);
 app.use("/auth", authRoute);
-app.use("/api/lich-day", lichDayRoute);
+app.use("/teacher", lichDayRoute);
 
 app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 app.get("/", (req, res) => {
