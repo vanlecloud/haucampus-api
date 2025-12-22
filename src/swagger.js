@@ -17,7 +17,18 @@ const options = {
         url: "http://localhost:3000",
         description: "Local server"
       }
-    ]
+    ],
+    omponents: {
+      securitySchemes: {
+        SessionCookie: {
+          type: "apiKey",
+          in: "header",
+          name: "Cookie",
+          description:
+            "Nhập cookie dạng: ASP.NET_SessionId=xxxxxx",
+        },
+      },
+    },
   },
   apis: ["./src/routes/*.js"] 
 };
