@@ -48,7 +48,7 @@ exports.login = async ({ username, password, role = 0, cookie }) => {
 exports.getStudentInfo = async (cookie)=>{
     const res = await axios.get(
         "https://tinchi.hau.edu.vn/SinhVien/ThongTinSinhVien",{
-            header: {
+            headers: {
                 Cookie: cookie,
             },
         }
