@@ -1,5 +1,7 @@
 const axios = require("axios");
 const qs = require("qs");
+const cheerio = require("cheerio");
+
 
 const BASE_URL = "https://tinchi.hau.edu.vn";
 
