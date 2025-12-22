@@ -1,41 +1,83 @@
 const authService = require("../services/auth.service");
 
-exports.login = async (req, res) => {
-  let { username, password, role } = req.body;
-  role = Number(role);
+exports.newCookie = async (req, res) => {
+  try {
+    const cookie = await authService.getNewCookie();
 
-  if (!username || !password || ![0, 1].includes(role)) {
-    return res.status(400).json({ success: false, message: "Thông tin không hợp lệ" });
+    if (!cookie) {
+      return res.status(500).json({
+        success: false,
+        message: "Không lấy được session cookie",
+      });
+    }
+
+    res.json({
+      success: true,
+      cookie,
+    });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: "Lỗi tạo session",
+    });
+  }
+};
+
+exports.login = async (req, res) => {
+  const { username, password, role } = req.body;
+
+  if (!username || !password || (role !== 0 && role !== 1)) {
+    return res.status(400).json({
+      success: false,
+      message: "Thông tin đăng nhập không hợp lệ hoặc role không đúng",
+    });
   }
 
   try {
     const cookie = await authService.getNewCookie();
-    
-    const loginOk = await authService.login({ username, password, role, cookie });
+
+    const loginOk = await authService.login({
+      username,
+      password,
+      role,
+      cookie,
+    });
 
     if (!loginOk) {
-      return res.status(401).json({ success: false, message: "Sai tài khoản hoặc mật khẩu" });
+      return res.status(401).json({
+        success: false,
+        message: "Sai tài khoản hoặc mật khẩu",
+      });
     }
 
-    let userData = {};
+    let userData;
+
     if (role === 0) {
+      // Sinh viên
       const studentInfo = await authService.getStudentInfo(cookie);
       if (!studentInfo) {
-        return res.status(401).json({ success: false, message: "Không thể lấy thông tin sinh viên" });
+        return res.status(401).json({
+          success: false,
+          message: "Thông tin sinh viên không hợp lệ",
+        });
       }
-      userData = studentInfo; 
-    } else {
-      userData = { username, fullName: "Giảng viên", userRole: "teacher" };
+      userData = studentInfo; // username, classStudy, studentId
+    } else if (role === 1) {
+      // Giảng viên
+      userData = { username }; // chỉ cần username
     }
 
     return res.status(200).json({
       success: true,
       data: userData,
-      sessionCookie: cookie 
+      sessionCookie: cookie,
     });
 
-  } catch (err) {
-    console.error("Login error:", err);
-    return res.status(500).json({ success: false, message: "Lỗi kết nối máy chủ trường" });
+  } catch (e) {
+    console.error("Login error:", e);
+    return res.status(500).json({
+      success: false,
+      message: "Lỗi hệ thống",
+    });
   }
 };

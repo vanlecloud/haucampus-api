@@ -42,22 +42,26 @@ exports.login = async ({ username, password, role = 0, cookie }) => {
  * Lấy thông tin sinh viên
  */
 exports.getStudentInfo = async (cookie) => {
-  const res = await axios.get(`${BASE_URL}/SinhVien/ThongTinSinhVien`, {
-    headers: { Cookie: cookie },
-  });
+  try {
+    const res = await axios.get(`${BASE_URL}/SinhVien/ThongTinSinhVien`, {
+      headers: { Cookie: cookie },
+    });
 
-  const $ = cheerio.load(res.data);
+    const $ = cheerio.load(res.data);
 
-  const studentId = $("#lblMaSinhVien").text().trim();
-  const fullName = $("#lblHoTen").text().trim();
-  const classStudy = $("#lblLop").text().trim();
+    const studentId = $("#lblMaSinhVien").text().trim();
+    const username = $("#lblHoTen").text().trim();
+    const classStudy = $("#lblLop").text().trim();
 
-  if (!studentId || !fullName || !classStudy) return null;
+    if (!studentId || !username) return null;
 
-  return {
-    studentId,
-    username: fullName,
-    classStudy,
-    userRole: "student",
-  };
+    return {
+      username,       // đúng theo mẫu API
+      classStudy,
+      studentId
+    };
+  } catch (error) {
+    console.error("Lỗi lấy thông tin sinh viên:", error);
+    return null;
+  }
 };
