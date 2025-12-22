@@ -78,7 +78,10 @@ exports.getTeacherInfo = async (cookie) => {
     });
 
     const $ = cheerio.load(res.data);
-    const fullName = $(".styMenu").first().text().trim();
+    const infoBlock = $(".navbar-right .styMenu").first();
+    const rawHtml = infoBlock.html() || "";
+    const parts = rawHtml.split(/<br\s*\/?>/i);
+    const fullName = parts[0] ? parts[0].trim() : "";
 
     if (!fullName) return null;
 
