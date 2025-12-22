@@ -50,15 +50,21 @@ exports.getStudentInfo = async (cookie) => {
     const $ = cheerio.load(res.data);
 
     const studentId = $("#lblMaSinhVien").text().trim();
-    const username = $("#lblHoTen").text().trim();
-    const classStudy = $("#lblLop").text().trim();
 
-    if (!studentId || !username) return null;
+    const infoBlock = $(".navbar-right .styMenu").first();
+    const rawHtml = infoBlock.html() || "";
+    const parts = rawHtml.split(/<br\s*\/?>/i);
+
+    const fullName = parts[0] ? parts[0].trim() : "";
+    const classStudy = parts[1] ? parts[1].trim() : "";
+
+    if (!studentId || !fullName) return null;
 
     return {
-      username,       // đúng theo mẫu API
+      studentId,
+      username: fullName,  // dùng username = fullName
       classStudy,
-      studentId
+      userRole: "student"
     };
   } catch (error) {
     console.error("Lỗi lấy thông tin sinh viên:", error);
@@ -66,13 +72,29 @@ exports.getStudentInfo = async (cookie) => {
   }
 };
 
+/**
+ * Lấy thông tin giảng viên
+ */
 exports.getTeacherInfo = async (cookie, username) => {
-  const res = await axios.get(`${BASE_URL}/GiangVien/${username}`, {
-    headers: { Cookie: cookie }
-  });
+  try {
+    const res = await axios.get(`${BASE_URL}/GiangVien/ThongTin/${username}`, {
+      headers: { Cookie: cookie },
+    });
 
-  const $ = cheerio.load(res.data);
-  const fullName = $("#lblHoTen").text().trim(); 
-  return { username: fullName, faculty };
+    const $ = cheerio.load(res.data);
+
+    const fullName = $("#lblHoTen").text().trim();
+    const faculty = $("#lblKhoa").text().trim();
+
+    if (!fullName) return null;
+
+    return {
+      username: fullName,   
+      faculty,
+      userRole: "teacher"
+    };
+  } catch (error) {
+    console.error("Lỗi lấy thông tin giảng viên:", error);
+    return null;
+  }
 };
-

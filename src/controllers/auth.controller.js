@@ -3,23 +3,12 @@ const authService = require("../services/auth.service");
 exports.newCookie = async (req, res) => {
   try {
     const cookie = await authService.getNewCookie();
-
     if (!cookie) {
-      return res.status(500).json({
-        success: false,
-        message: "Không lấy được session cookie",
-      });
+      return res.status(500).json({ success: false, message: "Không lấy được session cookie" });
     }
-
-    res.json({
-      success: true,
-      cookie,
-    });
+    res.json({ success: true, cookie });
   } catch (err) {
-    res.status(500).json({
-      success: false,
-      message: "Lỗi tạo session",
-    });
+    res.status(500).json({ success: false, message: "Lỗi tạo session" });
   }
 };
 
@@ -36,18 +25,10 @@ exports.login = async (req, res) => {
   try {
     const cookie = await authService.getNewCookie();
 
-    const loginOk = await authService.login({
-      username,
-      password,
-      role,
-      cookie,
-    });
+    const loginOk = await authService.login({ username, password, role, cookie });
 
     if (!loginOk) {
-      return res.status(401).json({
-        success: false,
-        message: "Sai tài khoản hoặc mật khẩu",
-      });
+      return res.status(401).json({ success: false, message: "Sai tài khoản hoặc mật khẩu" });
     }
 
     let userData;
@@ -55,32 +36,21 @@ exports.login = async (req, res) => {
     if (role === 0) {
       const studentInfo = await authService.getStudentInfo(cookie);
       if (!studentInfo) {
-        return res.status(401).json({
-          success: false,
-          message: "Thông tin sinh viên không hợp lệ",
-        });
+        return res.status(401).json({ success: false, message: "Thông tin sinh viên không hợp lệ" });
       }
-      userData = studentInfo; 
+      userData = studentInfo;
     } else if (role === 1) {
-  const teacherInfo = await authService.getTeacherInfo(cookie, username);
+      const teacherInfo = await authService.getTeacherInfo(cookie, username);
+      if (!teacherInfo) {
+        return res.status(401).json({ success: false, message: "Thông tin giảng viên không hợp lệ" });
+      }
+      userData = teacherInfo;
+    }
 
-  userData = {
-    ...teacherInfo, 
-    userRole: "teacher"
-  };
-}
-
-    return res.status(200).json({
-      success: true,
-      data: userData,
-      sessionCookie: cookie,
-    });
+    return res.status(200).json({ success: true, data: userData, sessionCookie: cookie });
 
   } catch (e) {
     console.error("Login error:", e);
-    return res.status(500).json({
-      success: false,
-      message: "Lỗi hệ thống",
-    });
+    return res.status(500).json({ success: false, message: "Lỗi hệ thống" });
   }
 };
