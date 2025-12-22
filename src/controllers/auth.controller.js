@@ -43,11 +43,22 @@ exports.login = async (req, res) => {
       });
     }
 
-    res.json({
-      username: "Lê Hồng Vân",
-      classStudy: "2021CDP1",
-      studentId: "2155020107",
-    });
+        let userData;
+    if (role === 0) {
+      const studentInfo = await authService.getStudentInfo(cookie);
+      userData = {
+        ...studentInfo,
+        userRole: "student",
+      };
+    } else if (role === 1) {
+
+      userData = {
+        username,
+        userRole: "teacher",
+      };
+    }
+
+    res.status(201).json(userData);
   } catch (e) {
     res.status(500).json({
       success: false,
