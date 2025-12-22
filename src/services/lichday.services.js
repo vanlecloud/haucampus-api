@@ -13,30 +13,59 @@ async function getlichDay({ namHoc, hocKy, cookie }) {
   });
 
   const $ = cheerio.load(res.data);
-  const rows = $("table tr"); 
+  const rows = $("table tr");
 
   const schedule = [];
-  let currentClass = {};
+  let lastClassInfo = {
+    maHocPhan: "",
+    tenHocPhan: "",
+    soTinChi: "",
+    tenLopTinChi: ""
+  };
 
   rows.each((i, el) => {
     const tds = $(el).find("td");
-    if (tds.length < 8) return;
+    if (tds.length === 0) return; 
 
-    const maHocPhan = $(tds[0]).text().trim() || currentClass.maHocPhan;
-    const tenHocPhan = $(tds[1]).text().trim() || currentClass.tenHocPhan;
-    const soTinChi = $(tds[2]).text().trim() || currentClass.soTinChi;
-    const tenLopTinChi = $(tds[3]).text().trim() || currentClass.tenLopTinChi;
-    const phong = $(tds[4]).text().trim();
-    const tiet = $(tds[5]).text().trim();
-    const thu = $(tds[6]).text().trim();
-    const ngayHoc = $(tds[7]).text().trim();
+    let maHocPhan, tenHocPhan, soTinChi, tenLopTinChi, phong, tiet, thu, ngayHoc;
 
-    schedule.push({ maHocPhan, tenHocPhan, soTinChi, tenLopTinChi, phong, tiet, thu, ngayHoc });
+    if (tds.length >= 8) {
+      maHocPhan = $(tds[0]).text().trim();
+      tenHocPhan = $(tds[1]).text().trim();
+      soTinChi = $(tds[2]).text().trim();
+      tenLopTinChi = $(tds[3]).text().trim();
+      phong = $(tds[4]).text().trim();
+      tiet = $(tds[5]).text().trim();
+      thu = $(tds[6]).text().trim();
+      ngayHoc = $(tds[7]).text().trim();
 
-    currentClass = { maHocPhan, tenHocPhan, soTinChi, tenLopTinChi };
+
+      lastClassInfo = { maHocPhan, tenHocPhan, soTinChi, tenLopTinChi };
+    } else if (tds.length > 0) {
+      maHocPhan = lastClassInfo.maHocPhan;
+      tenHocPhan = lastClassInfo.tenHocPhan;
+      soTinChi = lastClassInfo.soTinChi;
+      tenLopTinChi = lastClassInfo.tenLopTinChi;
+      
+      phong = $(tds[0]).text().trim();
+      tiet = $(tds[1]).text().trim();
+      thu = $(tds[2]).text().trim();
+      ngayHoc = $(tds[3]).text().trim();
+    }
+
+    if (ngayHoc) {
+      schedule.push({ 
+        maHocPhan, 
+        tenHocPhan, 
+        soTinChi, 
+        tenLopTinChi, 
+        phong, 
+        tiet, 
+        thu, 
+        ngayHoc 
+      });
+    }
   });
 
   return schedule;
 }
-
-module.exports = { getlichDay };
