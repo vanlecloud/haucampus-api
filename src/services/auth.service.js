@@ -52,3 +52,22 @@ exports.login = async ({ username, password, role, cookie }) => {
 
   return false;
 };
+
+exports.getStudentInfo = async (cookie)=>{
+    const res = await axios.get(
+        "https://tinchi.hau.edu.vn/SinhVien/ThongTinSinhVien",{
+            header: {
+                Cookie: cookie,
+            },
+        }
+    );
+    const $ = cheerio.load(res.data);
+    const studentId = $("#lblMaSV").text().trim();
+    const fullName = $("#lblHoTen").text().trim();
+    const classStudy = $("#lblLop").text().trim();
+     return {
+    studentId,
+    username: fullName,
+    classStudy,
+  };
+};

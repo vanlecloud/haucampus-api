@@ -36,9 +36,9 @@ exports.login = async (req, res) => {
     }
 
     const ok = await authService.login({
+      role,
       username,
       password,
-      role,
       cookie,
     });
 
@@ -49,13 +49,11 @@ exports.login = async (req, res) => {
       });
     }
 
+    const info = await authService.getStudentInfo(cookie);
     res.json({
-      success: true,
-      message: "Đăng nhập thành công",
-      user: {
-        username,
-        role,
-      },
+      username: info.username,
+      classStudy: info.classStudy,
+      studentId: info.studentId,
     });
   } catch (err) {
     res.status(500).json({

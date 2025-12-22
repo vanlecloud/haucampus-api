@@ -5,7 +5,7 @@ const authController = require("../controllers/auth.controller");
 /**
  * @swagger
  * /auth/new-cookie:
- *   get:
+ *   post:
  *     summary: Lấy session cookie ASP.NET
  *     tags: [Auth]
  *     responses:
@@ -22,7 +22,7 @@ const authController = require("../controllers/auth.controller");
  *                   type: string
  *                   example: ASP.NET_SessionId=leu5jgswdrdcrdq5sagaq2qg
  */
-router.get("/new-cookie", authController.newCookie);
+router.post("/new-cookie", authController.newCookie);
 
 /**
  * @swagger
