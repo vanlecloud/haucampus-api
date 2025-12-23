@@ -1,71 +1,36 @@
 const axios = require("axios");
-const cheerio = require("cheerio");
+const qs = require("qs");
 
 async function getlichDay({ namHoc, hocKy, cookie }) {
-  const url = `https://tinchi.hau.edu.vn/GiangVien/LichGiangDay/LoadThoiKhoaBieu?hocKy=${hocKy}&namHoc=${namHoc}&dotHoc=0`;
+  const url = "https://tinchi.hau.edu.vn/GiangVien/LichGiangDay/LoadThoiKhoaBieu";
 
-  const res = await axios.get(url, {
-    headers: {
-      Cookie: cookie,
-      "User-Agent": "Mozilla/5.0",
-      Accept: "text/html,application/json",
-    },
-  });
-
-  const $ = cheerio.load(res.data);
-  const rows = $("table tr");
-
-  const schedule = [];
-  let lastClassInfo = {
-    maHocPhan: "",
-    tenHocPhan: "",
-    soTinChi: "",
-    tenLopTinChi: ""
-  };
-
-  rows.each((i, el) => {
-    const tds = $(el).find("td");
-    if (tds.length === 0) return; 
-
-    let maHocPhan, tenHocPhan, soTinChi, tenLopTinChi, phong, tiet, thu, ngayHoc;
-
-    if (tds.length >= 8) {
-      maHocPhan = $(tds[0]).text().trim();
-      tenHocPhan = $(tds[1]).text().trim();
-      soTinChi = $(tds[2]).text().trim();
-      tenLopTinChi = $(tds[3]).text().trim();
-      phong = $(tds[4]).text().trim();
-      tiet = $(tds[5]).text().trim();
-      thu = $(tds[6]).text().trim();
-      ngayHoc = $(tds[7]).text().trim();
-
-
-      lastClassInfo = { maHocPhan, tenHocPhan, soTinChi, tenLopTinChi };
-    } else if (tds.length > 0) {
-      maHocPhan = lastClassInfo.maHocPhan;
-      tenHocPhan = lastClassInfo.tenHocPhan;
-      soTinChi = lastClassInfo.soTinChi;
-      tenLopTinChi = lastClassInfo.tenLopTinChi;
-      
-      phong = $(tds[0]).text().trim();
-      tiet = $(tds[1]).text().trim();
-      thu = $(tds[2]).text().trim();
-      ngayHoc = $(tds[3]).text().trim();
+  const res = await axios.post(
+    url,
+    qs.stringify({
+      namHoc,
+      hocKy,
+      dotHoc: 0,
+    }),
+    {
+      headers: {
+        Cookie: cookie,
+        "Content-Type": "application/x-www-form-urlencoded",
+        "X-Requested-With": "XMLHttpRequest",
+        "User-Agent": "Mozilla/5.0",
+      },
     }
+  );
 
-    if (ngayHoc) {
-      schedule.push({ 
-        maHocPhan, 
-        tenHocPhan, 
-        soTinChi, 
-        tenLopTinChi, 
-        phong, 
-        tiet, 
-        thu, 
-        ngayHoc 
-      });
-    }
-  });
-
-  return schedule;
+  return res.data.map(item => ({
+    maHocPhan: item.MaHocPhan,
+    tenHocPhan: item.TenHocPhan,
+    soTinChi: item.SoTinChi,
+    tenLopTinChi: item.TenLopTinChi,
+    phong: item.TenPhong,
+    tiet: item.Tiet,
+    thu: item.Thu,
+    ngayHoc: item.NgayHoc,
+  }));
 }
+
+module.exports = { getlichDay };
