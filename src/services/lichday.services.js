@@ -1,35 +1,36 @@
 const axios = require("axios");
-const qs = require("qs");
 
 async function getlichDay({ namHoc, hocKy, cookie }) {
   const url = "https://tinchi.hau.edu.vn/GiangVien/LichGiangDay/LoadThoiKhoaBieu";
 
   const res = await axios.post(
     url,
-    qs.stringify({
+    new URLSearchParams({
       namHoc,
       hocKy,
-      dotHoc: 0,
-    }),
+      dotHoc: 0
+    }).toString(),
     {
       headers: {
         Cookie: cookie,
-        "Content-Type": "application/x-www-form-urlencoded",
+        "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
         "X-Requested-With": "XMLHttpRequest",
-        "User-Agent": "Mozilla/5.0",
-      },
+        "User-Agent": "Mozilla/5.0"
+      }
     }
   );
 
-  return res.data.map(item => ({
+  const rawData = res.data;
+
+  return rawData.map(item => ({
     maHocPhan: item.MaHocPhan,
     tenHocPhan: item.TenHocPhan,
     soTinChi: item.SoTinChi,
-    tenLopTinChi: item.TenLopTinChi,
+    tenLopTinChi: item.TenLop,
     phong: item.TenPhong,
-    tiet: item.Tiet,
-    thu: item.Thu,
-    ngayHoc: item.NgayHoc,
+    tiet: item.TietHoc,
+    thu: `Thứ ${item.Thu}`,
+    ngayHoc: `${item.NgayBatDau} - ${item.NgayKetThuc}`
   }));
 }
 
