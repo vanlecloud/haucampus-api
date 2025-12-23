@@ -29,12 +29,11 @@ const authService = require("../services/auth.service");
  *         description: Đăng nhập thành công
  */
 router.post("/login", async (req, res) => {
-  const { username, password, role = 0 } = req.body;
-
-  if (!username || !password || (role !== 0 && role !== 1)) {
+  const auth = req.headers.authorization;
+  if (!auth) {
     return res.status(400).json({
       success: false,
-      message: "Thông tin đăng nhập không hợp lệ",
+      message: "Thiếu Authorization header",
     });
   }
 
