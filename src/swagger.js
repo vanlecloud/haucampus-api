@@ -1,3 +1,4 @@
+const path = require("path");
 const swaggerJSDoc = require("swagger-jsdoc");
 
 const options = {
@@ -10,19 +11,15 @@ const options = {
     },
     servers: [
       {
-        url: "http://localhost:3000",
-        description: "Local server",
-      },
-      {
-        url: "https://your-render-name.onrender.com",
-        description: "Render server",
+        url: "https://haucampus-api.onrender.com",
       },
     ],
   },
 
+
   apis: [
-    "./app.js",
-    "./routes/*.js",
+    path.join(__dirname, "app.js"),          
+    path.join(__dirname, "routes/*.js"),     
   ],
 };
 
