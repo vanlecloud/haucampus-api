@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
-const crawlNews = require("../crawlers/news.crawler");
+const axios = require("axios");
+const cheerio = require("cheerio");
 
 /**
  * @swagger
@@ -55,25 +56,51 @@ const crawlNews = require("../crawlers/news.crawler");
 
 router.get("/", async (req, res) => {
   try {
-    let page = Number(req.query.page) || 1;
-    let IDCat = Number(req.query.IDCat) || 2;
-    let Nhom = Number(req.query.Nhom) || 0;
+    // Lấy các tham số từ query string (ví dụ: /news?page=1&CatID=5)
+    // Nếu không có, mặc định lấy trang 1 và CatID = 5 (Tin tức - Xử lý học tập)
+    const page = req.query.page || 1;
+    const CatID = req.query.CatID || 5;
 
-    const data = await crawlNews({ page, IDCat, Nhom });
+    // Link gốc của trường hỗ trợ phân trang: &Page=...
+    const url = `https://tinchi.hau.edu.vn/ThongTin/ThongBao?CatID=${CatID}&Page=${page}`;
 
+    const response = await axios.get(url, {
+      headers: { "User-Agent": "Mozilla/5.0" },
+      timeout: 10000
+    });
+
+    const $ = cheerio.load(response.data);
+    const newsList = [];
+
+    // Lọc các khối tin tức trong div #dvData
+    $("#dvData > div").each((i, el) => {
+      const anchor = $(el).find("h4 a");
+      const title = anchor.text().trim();
+      const link = "https://tinchi.hau.edu.vn" + anchor.attr("href");
+      const date = $(el).find("span").last().text().trim();
+      const imageUrl = $(el).find("img").attr("src");
+
+      if (title) {
+        newsList.push({
+          title,
+          date,
+          link,
+          thumbnail: imageUrl ? "https://tinchi.hau.edu.vn" + imageUrl : null
+        });
+      }
+    });
+
+    // Trả về kết quả
     res.json({
       success: true,
-      page,
-      IDCat,
-      Nhom,
-      data
+      page: parseInt(page),
+      category: parseInt(CatID),
+      data: newsList
     });
-  } catch (err) {
-    console.error("NEWS ERROR:", err.message);
-    res.status(500).json({
-      success: false,
-      message: "Không thể lấy tin tức"
-    });
+
+  } catch (error) {
+    console.error("Scraping Error:", error.message);
+    res.status(500).json({ success: false, message: "Lỗi khi lấy tin tức" });
   }
 });
 
