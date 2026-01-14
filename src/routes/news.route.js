@@ -57,7 +57,6 @@ router.get("/", async (req, res) => {
         ? "https://tinchi.hau.edu.vn" + aTag.attr("href")
         : "";
       const date = $(el).find("span").last().text().trim();
-      const img = $(el).find("img").attr("src");
 
       if (title) {
         newsList.push({
@@ -68,16 +67,11 @@ router.get("/", async (req, res) => {
       }
     });
 
-    res.json({
-      success: true,
-      page,
-      CatID,
-      ...(CatID === 2 ? { Nhom } : {}),
-      data: newsList,
-    });
+    res.json(newsList);
+
   } catch (error) {
     console.error("Scraping Error:", error.message);
-    res.status(500).json({ success: false });
+    res.status(500).json([]);
   }
 });
 
