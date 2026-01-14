@@ -20,9 +20,8 @@ const options = {
     ],
   },
 
-  // 🔥 BẮT BUỘC PHẢI CÓ routes
   apis: [
-    "./index.js",
+    "./app.js",
     "./routes/*.js",
   ],
 };
