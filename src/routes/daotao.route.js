@@ -110,26 +110,52 @@ router.get("/hoc-phan", async (req, res) => {
     const $ = cheerio.load(response.data);
     const subjects = [];
 
+    // Biến ghi nhớ để xử lý rowspan
+    let currentKhoi = "";
+    let currentKy = "";
+
     $("table.table tbody tr").each((_, el) => {
       const td = $(el).find("td");
-      subjects.push({
-        khoiKienThuc: $(td[0]).text().trim(),
-        kyThu: $(td[1]).text().trim(),
-        maHocPhan: $(td[2]).text().trim(),
-        tenHocPhan: $(td[3]).text().trim(),
-        elearning: $(td[4]).text().trim(),
-        monTuChon: $(td[5]).text().trim(),
-        soTinChi: $(td[6]).text().trim(),
-        tongSoTiet: $(td[7]).text().trim(),
-        chiTiet: $(td[8]).find("a").attr("href") || null,
-        taiLieu: $(td[9]).find("a").attr("href") || null,
-      });
+      
+      // Nếu dòng này có đủ 10 cột (dòng bắt đầu một kỳ mới hoặc khối mới)
+      if (td.length === 10) {
+        currentKhoi = $(td[0]).text().trim();
+        currentKy = $(td[1]).text().trim();
+        
+        subjects.push({
+          khoiKienThuc: currentKhoi,
+          kyThu: currentKy,
+          maHocPhan: $(td[2]).text().trim(),
+          tenHocPhan: $(td[3]).text().trim(),
+          elearning: $(td[4]).text().trim(),
+          // Kiểm tra icon check cho môn tự chọn
+          monTuChon: $(td[5]).find("i.fa-check-circle-o").length > 0 ? "1" : "0",
+          soTinChi: $(td[6]).text().trim(),
+          tongSoTiet: $(td[7]).text().trim(),
+          chiTiet: $(td[8]).find("a").attr("id") || null, // Lấy ID chi tiết
+          taiLieu: $(td[9]).find("a").attr("href") || null,
+        });
+      } 
+      // Nếu dòng này bị thiếu cột do rowspan (dòng tiếp theo trong cùng kỳ)
+      else if (td.length === 8) {
+        subjects.push({
+          khoiKienThuc: currentKhoi,
+          kyThu: currentKy,
+          maHocPhan: $(td[0]).text().trim(), // td[0] lúc này là Mã HP
+          tenHocPhan: $(td[1]).text().trim(),
+          elearning: $(td[2]).text().trim(),
+          monTuChon: $(td[3]).find("i.fa-check-circle-o").length > 0 ? "1" : "0",
+          soTinChi: $(td[4]).text().trim(),
+          tongSoTiet: $(td[5]).text().trim(),
+          chiTiet: $(td[6]).find("a").attr("id") || null,
+          taiLieu: $(td[7]).find("a").attr("href") || null,
+        });
+      }
     });
 
     res.json(subjects);
-  } catch {
+  } catch (err) {
     res.status(500).json({ success: false });
   }
 });
-
 module.exports = router;
