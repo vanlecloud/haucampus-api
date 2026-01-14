@@ -18,7 +18,7 @@ const cheerio = require("cheerio");
  *         name: CatID
  *         schema:
  *           type: integer
- *           enum: [2, 5]
+ *           enum: [1, 2, 5, 6]
  *
  *       - in: query
  *         name: Nhom
@@ -38,7 +38,6 @@ router.get("/", async (req, res) => {
 
     let url = `https://tinchi.hau.edu.vn/ThongTin/ThongBao?CatID=${CatID}&Page=${page}`;
 
-    // 🔥 Chỉ Thông báo (CatID = 2) mới dùng Nhom
     if (CatID === 2) {
       url += `&Nhom=${Nhom}`;
     }
@@ -65,7 +64,6 @@ router.get("/", async (req, res) => {
           title,
           date,
           link,
-          thumbnail: img ? "https://tinchi.hau.edu.vn" + img : null,
         });
       }
     });
