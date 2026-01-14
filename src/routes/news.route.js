@@ -7,31 +7,42 @@ const cheerio = require("cheerio");
  * @swagger
  * /news:
  *   get:
- *     summary: Lấy danh sách tin tức / thông báo
  *     tags: [News]
  *     parameters:
  *       - in: query
  *         name: page
  *         schema:
  *           type: integer
- *         description: Trang hiện tại
+ *
  *       - in: query
  *         name: CatID
  *         schema:
  *           type: integer
- *         description: 5 = Tin tức, 2 = Thông báo
+ *           enum: [2, 5]
+ *
+ *       - in: query
+ *         name: Nhom
+ *         schema:
+ *           type: integer
  *     responses:
  *       200:
- *         description: Thành công
+ *         description: OK
  *       500:
- *         description: Lỗi server
+ *         description: ERROR
  */
 router.get("/", async (req, res) => {
   try {
-    const page = req.query.page || 1;
-    const CatID = req.query.CatID || 5;
+    const page = Number(req.query.page) || 1;
+    const CatID = Number(req.query.CatID) || 5;
+    const Nhom = Number(req.query.Nhom) || 0;
 
-    const url = `https://tinchi.hau.edu.vn/ThongTin/ThongBao?CatID=${CatID}&Page=${page}`;
+    // Base URL (chung)
+    let url = `https://tinchi.hau.edu.vn/ThongTin/ThongBao?CatID=${CatID}&Page=${page}`;
+
+    // 🔥 CHỈ thông báo mới có Nhom
+    if (CatID === 2) {
+      url += `&Nhom=${Nhom}`;
+    }
 
     const response = await axios.get(url, {
       headers: {
@@ -64,17 +75,16 @@ router.get("/", async (req, res) => {
 
     res.json({
       success: true,
-      page: Number(page),
-      category: Number(CatID),
+      page,
+      CatID,
+      ...(CatID === 2 ? { Nhom } : {}), // chỉ trả Nhom khi là thông báo
       data: newsList,
     });
   } catch (error) {
     console.error("Scraping Error:", error.message);
     res.status(500).json({
       success: false,
-      message: "Lỗi khi lấy tin tức",
+      message: "Lỗi khi lấy dữ liệu",
     });
   }
 });
-
-module.exports = router;
