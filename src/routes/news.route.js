@@ -7,88 +7,83 @@ const cheerio = require("cheerio");
  * @swagger
  * /news:
  * get:
- * summary: Lấy danh sách thông báo từ HAU
- * tags:
- * - News
+ * summary: Lấy dữ liệu theo ID danh mục (IDCat)
+ * tags: [News]
  * parameters:
+ * - in: query
+ * name: IDCat
+ * description: ID danh mục (2: Thông báo, 5: Tin tức, 3: Học phí...)
+ * schema:
+ * type: integer
  * - in: query
  * name: page
  * schema:
  * type: integer
- * default: 1
- * - in: query
- * name: IDCat
- * schema:
- * type: integer
- * default: 5
  * - in: query
  * name: Nhom
+ * description: Chỉ áp dụng cho một số IDCat như 2
  * schema:
  * type: integer
- * default: 0
- * responses:
- * 200:
- * description: Thành công trả về mảng tin tức
  */
 
-// Hàm crawl tách riêng để dễ quản lý
-async function crawlNews({ page = 1, IDCat = 5, Nhom = 0 } = {}) {
-  const url = `https://tinchi.hau.edu.vn/ThongTin/ThongBao?CatID=${IDCat}&Page=${page}&Nhom=${Nhom}`;
-  
+router.get("/", async (req, res) => {
   try {
-    const res = await axios.get(url, {
-      headers: {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko)",
-        "Accept": "text/html"
-      },
+    // 1. Lấy tham số từ người dùng gửi lên
+    const IDCat = req.query.IDCat || 5; // Mặc định là 5 nếu không truyền
+    const page = req.query.page || 1;
+    const Nhom = req.query.Nhom || 0;
+
+    // 2. Xây dựng URL linh hoạt
+    // Hầu hết các danh mục của HAU dùng CatID và Page
+    let url = `https://tinchi.hau.edu.vn/ThongTin/ThongBao?CatID=${IDCat}&Page=${page}`;
+    
+    // Nếu là IDCat 2 (Thông báo) thì mới nối thêm tham số Nhom vào URL
+    if (parseInt(IDCat) === 2) {
+      url += `&Nhom=${Nhom}`;
+    }
+
+    console.log("Đang lấy dữ liệu từ:", url);
+
+    const response = await axios.get(url, {
+      headers: { "User-Agent": "Mozilla/5.0" },
       timeout: 10000
     });
 
-    const $ = cheerio.load(res.data);
-    const news = [];
+    const $ = cheerio.load(response.data);
+    const newsList = [];
 
+    // 3. Bóc tách dữ liệu từ HTML
     $("#dvData > div").each((i, el) => {
       const aTag = $(el).find("h4 a");
       const title = aTag.text().trim();
-      const rawLink = aTag.attr("href");
-      const link = rawLink ? "https://tinchi.hau.edu.vn" + rawLink : "";
+      const link = aTag.attr("href") ? "https://tinchi.hau.edu.vn" + aTag.attr("href") : "";
       const date = $(el).find("span").last().text().trim();
-      const imgTag = $(el).find("img").first().attr("src");
-      const thumbnail = imgTag ? "https://tinchi.hau.edu.vn" + imgTag : null;
+      const img = $(el).find("img").attr("src");
 
       if (title) {
-        news.push({ title, date, link, thumbnail });
+        newsList.push({
+          title,
+          date,
+          link,
+          thumbnail: img ? "https://tinchi.hau.edu.vn" + img : null
+        });
       }
     });
-    return news;
-  } catch (error) {
-    throw error;
-  }
-}
 
-// Route chính
-router.get("/", async (req, res) => {
-  try {
-    // Ưu tiên lấy IDCat từ query, nếu không có mới lấy mặc định
-    const page = req.query.page || 1;
-    const IDCat = req.query.IDCat || 5; 
-    const Nhom = req.query.Nhom || 0;
-
-    const data = await crawlNews({ page, IDCat, Nhom });
-
+    // 4. Trả kết quả về cho App (APK)
     res.json({
       success: true,
-      page: parseInt(page),
-      IDCat: parseInt(IDCat),
-      Nhom: parseInt(Nhom),
-      data: data
+      query: {
+        IDCat: parseInt(IDCat),
+        page: parseInt(page),
+        Nhom: parseInt(IDCat) === 2 ? parseInt(Nhom) : "None"
+      },
+      data: newsList
     });
+
   } catch (error) {
-    console.error("Scraping Error:", error.message);
-    res.status(500).json({ 
-      success: false, 
-      message: "Không thể kết nối tới máy chủ trường" 
-    });
+    console.error("Lỗi:", error.message);
+    res.status(500).json({ success: false, message: "Lỗi kết nối server trường" });
   }
 });
 
