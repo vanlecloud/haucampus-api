@@ -68,7 +68,7 @@ router.get("/danh-sach-nganh", async (req, res) => {
       });
     });
 
-    res.json({ success: true, total: result.length, data: result });
+    res.json(result);
   } catch (err) {
     res.status(500).json({ success: false });
   }
@@ -126,7 +126,7 @@ router.get("/hoc-phan", async (req, res) => {
       });
     });
 
-    res.json({ success: true, data: subjects });
+    res.json(subjects);
   } catch {
     res.status(500).json({ success: false });
   }
