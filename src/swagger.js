@@ -1,4 +1,4 @@
-const swaggerJsdoc = require("swagger-jsdoc");
+const swaggerJSDoc = require("swagger-jsdoc");
 
 const options = {
   definition: {
@@ -6,31 +6,25 @@ const options = {
     info: {
       title: "HAUCampus API",
       version: "1.0.0",
-      description: "API cung cấp dữ liệu từ website tinchi.hau.edu.vn cho ứng dụng mobile"
+      description: "API cho ứng dụng HAUCampus",
     },
     servers: [
       {
-        url: "https://haucampus-api.onrender.com",
-        description: "Production server"
+        url: "http://localhost:3000",
+        description: "Local server",
       },
       {
-        url: "http://localhost:3000",
-        description: "Local server"
-      }
-    ],
-    omponents: {
-      securitySchemes: {
-        SessionCookie: {
-          type: "apiKey",
-          in: "header",
-          name: "Cookie",
-          description:
-            "Nhập cookie dạng: ASP.NET_SessionId=xxxxxx",
-        },
+        url: "https://your-render-name.onrender.com",
+        description: "Render server",
       },
-    },
+    ],
   },
-  apis: ["./src/routes/*.js"] 
+
+  // 🔥 BẮT BUỘC PHẢI CÓ routes
+  apis: [
+    "./index.js",
+    "./routes/*.js",
+  ],
 };
 
-module.exports = swaggerJsdoc(options);
+module.exports = swaggerJSDoc(options);
