@@ -6,16 +6,12 @@ const swaggerUi = require("swagger-ui-express");
 const swaggerSpec = require("./swagger");
 
 const newsRoute = require("./routes/news.route");
-const authRoute = require("./routes/auth.route");
-const lichDayRoute = require("./routes/lichday.route");
 
 
 app.use(cors());
 app.use(express.json());
 
 app.use("/news", newsRoute);
-app.use("/auth", authRoute);
-app.use("/teacher", lichDayRoute);
 
 app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 app.get("/", (req, res) => {
