@@ -116,8 +116,6 @@ router.get("/hoc-phan", async (req, res) => {
 
     $("table.table tbody tr").each((_, el) => {
       const td = $(el).find("td");
-      
-      // Nếu dòng này có đủ 10 cột (dòng bắt đầu một kỳ mới hoặc khối mới)
       if (td.length === 10) {
         currentKhoi = $(td[0]).text().trim();
         currentKy = $(td[1]).text().trim();
