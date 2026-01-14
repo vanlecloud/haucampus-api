@@ -6,101 +6,89 @@ const cheerio = require("cheerio");
 /**
  * @swagger
  * /news:
- *   get:
- *     summary: Lấy danh sách thông báo
- *     description: Thông báo/ tin tức
- *     tags:
- *       - News
- *     parameters:
- *       - in: query
- *         name: page
- *         schema:
- *           type: integer
- *           example: 1
- *       - in: query
- *         name: IDCat
- *         schema:
- *           type: integer
- *           example: 2
- *       - in: query
- *         name: Nhom
- *         schema:
- *           type: integer
- *           example: 0
- *     responses:
- *       200:
- *         description: Succes
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                 page:
- *                   type: integer
- *                 IDCat:
- *                   type: integer
- *                 Nhom:
- *                   type: integer
- *                 data:
- *                   type: array
- *                   items:
- *                     type: object
- *                     properties:
- *                       0:
- *                         type: string
- *                       1:
- *                         type: string
+ * get:
+ * summary: Lấy danh sách thông báo từ HAU
+ * tags:
+ * - News
+ * parameters:
+ * - in: query
+ * name: page
+ * schema:
+ * type: integer
+ * default: 1
+ * - in: query
+ * name: IDCat
+ * schema:
+ * type: integer
+ * default: 5
+ * - in: query
+ * name: Nhom
+ * schema:
+ * type: integer
+ * default: 0
+ * responses:
+ * 200:
+ * description: Thành công trả về mảng tin tức
  */
 
-router.get("/", async (req, res) => {
+// Hàm crawl tách riêng để dễ quản lý
+async function crawlNews({ page = 1, IDCat = 5, Nhom = 0 } = {}) {
+  const url = `https://tinchi.hau.edu.vn/ThongTin/ThongBao?CatID=${IDCat}&Page=${page}&Nhom=${Nhom}`;
+  
   try {
-    // Lấy các tham số từ query string (ví dụ: /news?page=1&CatID=5)
-    // Nếu không có, mặc định lấy trang 1 và CatID = 5 (Tin tức - Xử lý học tập)
-    const page = req.query.page || 1;
-    const CatID = req.query.CatID || 5;
-
-    // Link gốc của trường hỗ trợ phân trang: &Page=...
-    const url = `https://tinchi.hau.edu.vn/ThongTin/ThongBao?CatID=${CatID}&Page=${page}`;
-
-    const response = await axios.get(url, {
-      headers: { "User-Agent": "Mozilla/5.0" },
+    const res = await axios.get(url, {
+      headers: {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko)",
+        "Accept": "text/html"
+      },
       timeout: 10000
     });
 
-    const $ = cheerio.load(response.data);
-    const newsList = [];
+    const $ = cheerio.load(res.data);
+    const news = [];
 
-    // Lọc các khối tin tức trong div #dvData
     $("#dvData > div").each((i, el) => {
-      const anchor = $(el).find("h4 a");
-      const title = anchor.text().trim();
-      const link = "https://tinchi.hau.edu.vn" + anchor.attr("href");
+      const aTag = $(el).find("h4 a");
+      const title = aTag.text().trim();
+      const rawLink = aTag.attr("href");
+      const link = rawLink ? "https://tinchi.hau.edu.vn" + rawLink : "";
       const date = $(el).find("span").last().text().trim();
-      const imageUrl = $(el).find("img").attr("src");
+      const imgTag = $(el).find("img").first().attr("src");
+      const thumbnail = imgTag ? "https://tinchi.hau.edu.vn" + imgTag : null;
 
       if (title) {
-        newsList.push({
-          title,
-          date,
-          link,
-          thumbnail: imageUrl ? "https://tinchi.hau.edu.vn" + imageUrl : null
-        });
+        news.push({ title, date, link, thumbnail });
       }
     });
+    return news;
+  } catch (error) {
+    throw error;
+  }
+}
 
-    // Trả về kết quả
+// Route chính
+router.get("/", async (req, res) => {
+  try {
+    // Ưu tiên lấy IDCat từ query, nếu không có mới lấy mặc định
+    const page = req.query.page || 1;
+    const IDCat = req.query.IDCat || 5; 
+    const Nhom = req.query.Nhom || 0;
+
+    const data = await crawlNews({ page, IDCat, Nhom });
+
     res.json({
       success: true,
       page: parseInt(page),
-      category: parseInt(CatID),
-      data: newsList
+      IDCat: parseInt(IDCat),
+      Nhom: parseInt(Nhom),
+      data: data
     });
-
   } catch (error) {
     console.error("Scraping Error:", error.message);
-    res.status(500).json({ success: false, message: "Lỗi khi lấy tin tức" });
+    res.status(500).json({ 
+      success: false, 
+      message: "Không thể kết nối tới máy chủ trường" 
+    });
   }
 });
 
