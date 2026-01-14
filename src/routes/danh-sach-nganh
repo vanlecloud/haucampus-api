@@ -1,0 +1,86 @@
+const express = require("express");
+const router = express.Router();
+const axios = require("axios");
+const cheerio = require("cheerio");
+
+/**
+ * @swagger
+ * /daotao/danh-sach-nganh:
+ *   get:
+ *     tags:
+ *       - daotao
+ *     responses:
+ *       200:
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 total:
+ *                   type: integer
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       he:
+ *                         type: string
+ *                       khoa:
+ *                         type: string
+ *                       nganh:
+ *                         type: string
+ *                       chuyenNganh:
+ *                         type: string
+ *                       ID_dt:
+ *                         type: integer
+ */
+router.get("/danh-sach-nganh", async (req, res) => {
+  try {
+    const url = "https://tinchi.hau.edu.vn/ChuongTrinhDaoTao/ToanTruong";
+
+    const response = await axios.get(url, {
+      headers: { "User-Agent": "Mozilla/5.0" },
+    });
+
+    const $ = cheerio.load(response.data);
+    const result = [];
+
+    $("#myTree > li").each((_, heNode) => {
+      const heText = $(heNode).children("a").text().trim();
+
+      $(heNode).find("> ul > li").each((_, khoaNode) => {
+        const khoaText = $(khoaNode).children("a").text().trim();
+
+        $(khoaNode).find("> ul > li").each((_, nganhNode) => {
+          const nganhText = $(nganhNode).children("a").text().trim();
+
+          $(nganhNode).find("ul li a.ChuyenNganh").each((_, cnNode) => {
+            const chuyenNganhText = $(cnNode).text().trim();
+            const id = $(cnNode).attr("id"); // Lấy ID trực tiếp từ attribute id
+
+            result.push({
+              he: heText,
+              khoa: khoaText,
+              nganh: nganhText,
+              chuyenNganh: chuyenNganhText,
+              ID_dt: id ? Number(id) : null,
+            });
+          });
+        });
+      });
+    });
+
+    res.json({
+      success: true,
+      total: result.length,
+      data: result,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+module.exports = router;
