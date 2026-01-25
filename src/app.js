@@ -11,6 +11,7 @@ app.use(express.json());
 
 app.use("/daotao", require("./routes/daotao.route"));
 app.use("/news", require("./routes/news.route"));
+app.use("/cookie", require("./routes/cookie"));
 
 try {
   app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
