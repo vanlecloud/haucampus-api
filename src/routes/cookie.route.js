@@ -40,7 +40,7 @@ const TARGET_URL = "https://tinchi.hau.edu.vn/";
  *       500:
  *         description: Lỗi kết nối tới hệ thống tín chỉ
  */
-router.get("/new-cookie", async (req, res) => {
+router.get("/", async (req, res) => {
   try {
     const response = await axios.get(TARGET_URL, {
       headers: {
