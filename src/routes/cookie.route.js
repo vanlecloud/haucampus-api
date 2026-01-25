@@ -2,17 +2,18 @@ const express = require("express");
 const router = express.Router();
 const axios = require("axios");
 
-const TARGET_URL = "https://tinchi.hau.edu.vn/default.aspx";
+const TARGET_URL = "https://tinchi.hau.edu.vn/";
 
 /**
  * @swagger
- * /session/get-session:
+ * /new-cookie:
  *   get:
  *     summary: Lấy ASP.NET_SessionId từ hệ thống tín chỉ HAU
  *     description: |
- *       Gửi request đến trang tín chỉ HAU và trích xuất cookie `ASP.NET_SessionId`
- *       từ header `set-cookie`. Session này dùng cho các bước tiếp theo như login,
- *       lấy thông tin sinh viên, đăng ký tín chỉ,...
+ *       Gửi request đến https://tinchi.hau.edu.vn và trích xuất cookie
+ *       `ASP.NET_SessionId` từ header `set-cookie`. Cookie này dùng để
+ *       duy trì session cho các bước như login, xem thông tin sinh viên,
+ *       đăng ký tín chỉ,...
  *     tags: [Session]
  *     responses:
  *       200:
@@ -27,44 +28,29 @@ const TARGET_URL = "https://tinchi.hau.edu.vn/default.aspx";
  *                   example: true
  *                 aspsessionid:
  *                   type: string
- *                   description: Giá trị của cookie ASP.NET_SessionId
- *                   example: "abc123xyz456"
- *                 full_cookie:
- *                   type: string
- *                   description: Cookie gốc từ server (debug)
- *                   example: "ASP.NET_SessionId=abc123xyz456; path=/; HttpOnly"
+ *                   example: "xgjta20bawwtemcyvaczy0"
+ *                 rawCookies:
+ *                   type: array
+ *                   items:
+ *                     type: string
+ *                   example:
+ *                     - "ASP.NET_SessionId=xgjta20bawwtemcyvaczy0; path=/; HttpOnly"
  *       404:
- *         description: Không tìm thấy cookie hoặc không có ASP.NET_SessionId
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 error:
- *                   type: string
- *                   example: "Không tìm thấy ASP.NET_SessionId"
+ *         description: Không tìm thấy ASP.NET_SessionId
  *       500:
- *         description: Lỗi khi kết nối tới hệ thống tín chỉ
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 error:
- *                   type: string
- *                   example: "Lỗi khi kết nối tới server tinchi"
- *                 details:
- *                   type: string
- *                   example: "timeout of 10000ms exceeded"
+ *         description: Lỗi kết nối tới hệ thống tín chỉ
  */
 router.get("/get-session", async (req, res) => {
   try {
     const response = await axios.get(TARGET_URL, {
       headers: {
-        "User-Agent":
-          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        "User-Agent": "Mozilla/5.0",
       },
       timeout: 10000,
+
+      // Nhận cả response redirect (302)
+      maxRedirects: 0,
+      validateStatus: (status) => status >= 200 && status < 400,
     });
 
     const cookies = response.headers["set-cookie"];
@@ -74,25 +60,27 @@ router.get("/get-session", async (req, res) => {
     }
 
     let sessionId = null;
+
     cookies.forEach((cookie) => {
       if (cookie.includes("ASP.NET_SessionId")) {
         sessionId = cookie.split(";")[0].split("=")[1];
       }
     });
 
-    if (sessionId) {
-      res.json({
-        success: true,
-        aspsessionid: sessionId,
-        full_cookie: cookies[0],
-      });
-    } else {
-      res.status(404).json({ error: "Không tìm thấy ASP.NET_SessionId" });
+    if (!sessionId) {
+      return res.status(404).json({ error: "Không tìm thấy ASP.NET_SessionId" });
     }
+
+    res.json({
+      success: true,
+      aspsessionid: sessionId,
+      rawCookies: cookies,
+    });
+
   } catch (error) {
-    console.error("Lỗi khi lấy cookie:", error.message);
+    console.error("Session Error:", error.message);
     res.status(500).json({
-      error: "Lỗi khi kết nối tới server tinchi",
+      error: "Lỗi khi kết nối tới hệ thống tín chỉ",
       details: error.message,
     });
   }
