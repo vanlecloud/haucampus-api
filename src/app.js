@@ -13,7 +13,7 @@ app.use(express.json());
 app.use("/auth", authRoute);
 app.use("/daotao", require("./routes/daotao.route"));
 app.use("/news", require("./routes/news.route"));
-app.use("/new-cookie", require("./routes/cookie.route"));
+app.use("/auth", require("./routes/cookie.route"));
 
 try {
   app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
