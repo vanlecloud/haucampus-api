@@ -2,6 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const swaggerUi = require("swagger-ui-express");
 const swaggerSpec = require("./swagger");
+const authRoute = require("./routes/auth.route");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -9,6 +10,7 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
+app.use("/auth", authRoute);
 app.use("/daotao", require("./routes/daotao.route"));
 app.use("/news", require("./routes/news.route"));
 app.use("/new-cookie", require("./routes/cookie.route"));
