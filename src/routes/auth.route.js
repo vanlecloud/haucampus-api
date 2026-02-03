@@ -29,45 +29,58 @@ const authService = require("../services/auth.service");
  *         description: Đăng nhập thành công
  */
 router.post("/login", async (req, res) => {
-  const auth = req.headers.authorization;
-  if (!auth) {
-    return res.status(400).json({
-      success: false,
-      message: "Thiếu Authorization header",
-    });
-  }
-
   try {
-    // 1. Lấy cookie mới từ TinChi
-    const cookie = await authService.getNewCookie();
+    let { username, password, role = 0 } = req.body;
+    role = Number(role) || 0;
 
-    // 2. Login với cookie đó
-    const loginOk = await authService.login({ username, password, role, cookie });
-    if (!loginOk) {
-      return res.status(401).json({ success: false, message: "Sai tài khoản hoặc mật khẩu" });
+    if (!username || !password) {
+      return res.status(400).json({
+        success: false,
+        message: "Thiếu username hoặc password",
+      });
     }
 
-    // 3. Lấy thông tin user
-    let userData;
+    const loginOk = await authService.login({ username, password, role });
+
+    if (!loginOk) {
+      return res.status(401).json({
+        success: false,
+        message: "Sai tài khoản hoặc mật khẩu",
+      });
+    }
+
+    let userData = null;
+
     if (role === 0) {
-      userData = await authService.getStudentInfo(cookie);
+      userData = await authService.getStudentInfo();
       if (!userData) {
-        return res.status(401).json({ success: false, message: "Thông tin sinh viên không hợp lệ" });
+        return res.status(401).json({
+          success: false,
+          message: "Không lấy được thông tin",
+        });
       }
     } else {
-      const teacherInfo = await authService.getTeacherInfo(cookie);
+      const teacherInfo = await authService.getTeacherInfo();
       if (!teacherInfo) {
-        return res.status(401).json({ success: false, message: "Thông tin giảng viên không hợp lệ" });
+        return res.status(401).json({
+          success: false,
+          message: "Không lấy được thông tin",
+        });
       }
       userData = { ...teacherInfo, userRole: "teacher" };
     }
 
-    // 4. Trả cookie để client lưu lại
-    res.json({ success: true, data: userData, sessionCookie: cookie });
+    return res.json({
+      success: true,
+      data: userData,
+    });
 
   } catch (err) {
-    console.error("LOGIN ERROR:", err);
-    res.status(500).json({ success: false, message: "Lỗi hệ thống" });
+    console.error("LOGIN ERROR:", err.message);
+    return res.status(500).json({
+      success: false,
+      message: "Lỗi hệ thống",
+    });
   }
 });
 
