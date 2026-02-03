@@ -8,7 +8,7 @@ const TARGET_URL = "https://tinchi.hau.edu.vn/";
  * @swagger
  * /auth/new-cookie:
  *   get:
- *     tags: [Session]
+ *     tags: [Auth]
  *     responses:
  *       200:
  *         content:
@@ -16,7 +16,7 @@ const TARGET_URL = "https://tinchi.hau.edu.vn/";
  *             schema:
  *               type: string
  */
-router.get("/", async (req, res) => {
+router.get("/new-cookie", async (req, res) => {
   try {
     const response = await axios.get(TARGET_URL, {
       headers: { "User-Agent": "Mozilla/5.0" },
