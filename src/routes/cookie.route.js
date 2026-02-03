@@ -28,19 +28,13 @@ router.get("/", async (req, res) => {
     const cookies = response.headers["set-cookie"];
     if (!cookies) return res.sendStatus(404);
 
-    let sessionId = null;
+    const aspCookie = cookies.find(c => c.startsWith("ASP.NET_SessionId"));
 
-    for (const cookie of cookies) {
-      if (cookie.includes("ASP.NET_SessionId")) {
-        sessionId = cookie.split(";")[0].split("=")[1];
-        break;
-      }
-    }
+    if (!aspCookie) return res.sendStatus(404);
 
-    if (!sessionId) return res.sendStatus(404);
+    res.type("text/plain").send(aspCookie);
 
-    res.type("text/plain").send(sessionId);
-  } catch (error) {
+  } catch (err) {
     res.sendStatus(500);
   }
 });
