@@ -6,7 +6,7 @@ const TARGET_URL = "https://tinchi.hau.edu.vn/";
 
 /**
  * @swagger
- * /new-cookie:
+ * auth/new-cookie:
  *   get:
  *     tags: [Session]
  *     responses:
