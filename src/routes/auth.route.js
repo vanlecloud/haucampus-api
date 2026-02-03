@@ -33,6 +33,18 @@ router.post("/login", async (req, res) => {
     let { username, password, role = 0 } = req.body;
     role = Number(role) || 0;
 
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res.status(401).json({
+        success: false,
+        message: "Thiếu ASP.NET_SessionId (Bearer token)",
+      });
+    }
+
+    const sessionId = authHeader.split(" ")[1];
+    const cookie = `ASP.NET_SessionId=${sessionId}`;
+
     if (!username || !password) {
       return res.status(400).json({
         success: false,
@@ -40,7 +52,12 @@ router.post("/login", async (req, res) => {
       });
     }
 
-    const loginOk = await authService.login({ username, password, role });
+    const loginOk = await authService.login({
+      username,
+      password,
+      role,
+      cookie,
+    });
 
     if (!loginOk) {
       return res.status(401).json({
@@ -52,28 +69,20 @@ router.post("/login", async (req, res) => {
     let userData = null;
 
     if (role === 0) {
-      userData = await authService.getStudentInfo();
-      if (!userData) {
-        return res.status(401).json({
-          success: false,
-          message: "Không lấy được thông tin",
-        });
-      }
+      userData = await authService.getStudentInfo(cookie);
     } else {
-      const teacherInfo = await authService.getTeacherInfo();
-      if (!teacherInfo) {
-        return res.status(401).json({
-          success: false,
-          message: "Không lấy được thông tin",
-        });
-      }
-      userData = { ...teacherInfo, userRole: "teacher" };
+      const teacherInfo = await authService.getTeacherInfo(cookie);
+      userData = teacherInfo ? { ...teacherInfo, userRole: "teacher" } : null;
     }
 
-    return res.json({
-      success: true,
-      data: userData,
-    });
+    if (!userData) {
+      return res.status(401).json({
+        success: false,
+        message: "Session hết hạn hoặc không lấy được dữ liệu",
+      });
+    }
+
+    return res.json({ success: true, data: userData });
 
   } catch (err) {
     console.error("LOGIN ERROR:", err.message);
@@ -83,5 +92,3 @@ router.post("/login", async (req, res) => {
     });
   }
 });
-
-module.exports = router;
